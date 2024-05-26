@@ -27,8 +27,8 @@ class Food(GameSprite):
         self.images.append(new_image)
 
     def new_position(self):
-        self.rect.x = randint(5,700-5-self.rect.width)
-        self.rect.y = randint(5,500-5-self.rect.height)
+        self.rect.x = randint(0,13)*50
+        self.rect.y = randint(0,9)*50
         self.image = choice(self.images)
     
 class Snake(GameSprite):
@@ -67,12 +67,18 @@ back = (4, 0, 0)
 window = display.set_mode((700,500))
 display.set_caption('Курица')
 clock = time.Clock()
-FPS = 60
+FPS = 2
+
+font.init()
+font1 = font.SysFont('Arial', 36)
+
+
+font_lose = font1.render('Ты проиграл!', 1, (255,255,255))
+font_win = font1.render('Ты выиграл!', 1, (255,255,255))
 
 my_food = Food('ny_blin2.png', 100, 100, 100, 50, 0)
 my_food.add_image('ny_blin3.png')
-head = Snake('ny_blin.png', 350, 250, 60, 55, 3)
-tale = Snake('ny_blin1.png', -100, -100, 60, 55, 0)
+head = Snake('ny_blin.png', 350, 250, 60, 55, 50)
 
 
 
@@ -82,6 +88,8 @@ tale = Snake('ny_blin1.png', -100, -100, 60, 55, 0)
 game = True
 direction = 'stop'
 finish = False
+lose = False
+win = False
 eat = 0
 snake = [head]
 
@@ -108,23 +116,36 @@ while game:
         window.fill(back)
         my_food.reset()
         for i in range(len(snake)-1, 0, -1):
-            snake[1].rect.x = snake[i-1].rect.x
-            snake[1].rect.y = snake[i-1].rect.y
+            snake[i].rect.x = snake[i-1].rect.x
+            snake[i].rect.y = snake[i-1].rect.y
             snake[i].reset()
         head.update(direction)
         head.reset()
 
         if head.rect.x<5 or head.rect.x>700-50:
             finish = True
+            lose = True
         if head.rect.y<5 or head.rect.y>700-50:
             finish = True
+            lose = True
         if head.rect.colliderect(my_food.rect):
             my_food.new_position()
             eat += 1
+            tale = Snake('ny_blin1.png', -100, -100, 60, 55, 0)
             tale.rect.x = head.rect.x
             tale.rect.y = head.rect.y
             snake.append(tale)
+            if eat>=5:
+                finish = True
+                win = True
+            if eat % 5 == 0:
+                FPS += 1
 
-
+    if lose:
+        window.blit(font_lose, (150,150))
+    if win:
+        window.blit(font_win, (150,150))
+    font_score = font1.render('Сьедено фруктов:'+str(eat), 1,(0,0,255))
+    window.blit(font_score,(10, 10))
     display.update()
     clock.tick(FPS)
